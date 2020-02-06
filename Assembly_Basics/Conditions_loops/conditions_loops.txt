@@ -1,0 +1,21 @@
+							CONDIZIONI E LOOP
+CONDIZIONI:
+-IF statement
+ci sono molte forme di condizioni. la prima, chiamata if può essere usata per comparare 2 o più variabili.
+Il codice fornito viene utilizzato per spiegare cosa accade in assembly.
+Aprire il programma con radare2 : 
+r2 ./code_sample
+Eseguire queste istruzioni :
+- aaaa (per analizzare funzioni e creare referenze mirate al processo di rev eng)
+- afl (All function list) : permette di listare tutte le funzioni del binario
+- s main (seek) : usato per settare l'indirizzo corrente nel binario alla funzione main (in questo caso è da dove dobbiamo partire), se si nota l'indirizzo di default a cui punta radare
+è entry0 niente meno che l'entry point del binario.
+- pdf (print disassemble function) : permette di analizzare le istruzioni che compongono il main in questo caso.
+Ora possiamo osservare che le variabili hanno un nome diverso da x e y, si chiamano dword[local...], una delle due viene passata nel registro eax e poi viene eseuita l'istruzione cmp tra le 2.
+L'istruzione jne (jump not equal) fa sì che se non sono uguali si jumpa all'istruzione di return altrimenti le 2 variabili vengono pushate nello stack (salvate) e viene chiamato il metodo printf.
+Più nel dettaglio l'istruzione cmp (compare) compara i 2 valori, se sono uguali ritorna 0 (il zero flag, se cmp ritorna 0, viene settato a 1, altrimenti rimane a 0)
+Dopodichè se viene eseguito il jump l'instruction pointer viene settato all'indirizzo dove bisogna jumpare, altrimenti viene settato all'istruzione successiva.
+
+-Else statement
+
+
