@@ -1,0 +1,55 @@
+							ARCHITETTURA DI BASE DELLA CPU
+
+Registri:
+AX (registro accumulatore) : usato per operazioni aritmetiche e anche usato per storate il valore di ritorno
+BX (registro di base) : contiene un puntatore al dato (registro DS è usato quando è in segment mode)
+CX (registro counter) : usato durante i loop (per tenere traccia del conto dell'iterazione) e per scambi/rotazioni del dato
+DX (registro data) : utilizzato per operazioni di I/O
+SP (registro stack pointer) : usato per puntare al top dello stack
+BP (registro stack base pointer) : usato per puntare alla base dello stack 
+SI (registro source index) : utilizzato durante flussi di operazioni e punta alla locazione sorgente
+DI (registro destination index) : utilizzato durante flussi di operazioni e punta alla locazione di destinazione
+IP (registro instruction pointer) : utilizzato per puntare all'istruzione successiva, chiamato anche program counter (PC)
+
+I primi 4 registri vengono divisi in due registri da 8 bit ciascuno ciascuno, la metà più bassa al posto della X viene messa la L, mentre nella parte più alta viene messa la H al posto della X :
+AX = AH & AL
+BX = BH & BL
+CX = CH & CL
+DX = DH & DL
+
+L'architettura a 32 bit utilizza registri a 32 bit, e quindi vengono estesi quelli vecchi, infatti prendono il nome di prima con la E davanti (extended) : 
+EAX, EBX, ECX, EDX, ESP, EBP, ESI, EDI, EIP
+
+L'architettura a 64 bit utilizza registri a 64 bit e quindi vengono estesi quelli a 32 : 
+RAX, RBX, RCX, RDX, RSP, RBP, RSI, RDI, RIP
+In più vengono aggiunti altri 8 registri :
+R8, R9, R10, R11, R12, R13, R14, R15 (general purpouse)
+Secondo la documentazione INTEL alcuni registri sono free to use dall'utente, R8, R9, R10, R11 sono considerati volatili (quando la funzione viene chiamata vengono freshati),
+mentre R12, R13, R14, R15 devono essere salvati prima di chiamare un'altra funzione
+
+Registri segmento
+Oltre i registri general purpouse, ci sono 6 registri segmento (segment registers), il loro scopo è quello di storare il valore dei segmenti del binario che è eseguito.
+Oggigiorno questi registri non vengono utilizzati per quello scopo poichè la memoria non è più piatta perchè è stato introdotto il meccanismo di paging.
+CS (registro segmento di codice) : contiene il valore del segmento di codice (code segment) del binario
+DS (registro segmento dato) : contiene il valore del segmento dato (data segment) del binario
+ES,FS,GS (registri segmento extra) : registri extra sono riempiti con dati dal sistema operativo (exceptions, thread handling)
+SS (registro segmento di stack) : contiene il valore del segmento di stack (stack segment) del binario
+
+Notazione endian
+Big endian : byte più significativo a sinistra, a destra il meno significativo, es : abcd -> abcd
+Little endian : byte meno significativo a sinistra, a destra quello più significativo, es : abcd -> dbca
+
+Flags
+I registri flags contengono informazioni riguardo impostazioni specifiche. Ogni impostazione è salavata in un altro bit del registro. Come risultato, tutte le impostazioni vengono salvate
+in un unico registro e inoltre hanno nomi specifici. Le flags nel registri flags sono settati di default dopo alcune istruzioni tipo sub, add, cmp
+Ecco alcune flag che si possono trovare dentro il registro
+CF (carry flag) : questa flag è settata quando una addizione ha bisogno del riporto es : 9 + 7 = 6 con il riporto (carry) settato a 1 
+PF (parity flag) : se la somma dei bit di un valore è pari, il flag viene settato, altrimenti nulla
+AF (adjust flag) : questa flag è anche conosciuta come auxiliary flag funziona come il carry flag ma lo fa per i 4 bit più alti e 4 bit più bassi
+ZF (zero flag) :  se il risultato di una istruzione è zero, viene settato 1 altrimenti 0
+SF (sign flag) : controlla se un valore è segnato (inteso come negativo) infatti se il bit più significativo vale 1 il flag è settato a 1 altrimenti 0
+TF (trap flag) : setta la cpu in single step mode. questa modalità esegue una singola istruzione a tempo prima che si fermi. durante il debugging, questa flag è settata
+IF (interrupt enable flag) : se interrupt eserni sono permessi questa flag viene settata a 1 altrimenti 0
+DF (direction flag) : se il valore della flag è 0 i dati vengono letti da sinistra, altrimenti da destra
+
+
