@@ -2,7 +2,7 @@
 CONDIZIONI:
 -IF statement
 ci sono molte forme di condizioni. la prima, chiamata if può essere usata per comparare 2 o più variabili.
-Il codice fornito viene utilizzato per spiegare cosa accade in assembly.
+Il sorgente if-else.c viene utilizzato per spiegare cosa accade in assembly.
 Aprire il programma con radare2 : 
 r2 ./code_sample
 Eseguire queste istruzioni :
@@ -17,5 +17,22 @@ Più nel dettaglio l'istruzione cmp (compare) compara i 2 valori, se sono uguali
 Dopodichè se viene eseguito il jump l'instruction pointer viene settato all'indirizzo dove bisogna jumpare, altrimenti viene settato all'istruzione successiva.
 
 -Else statement
+Viene interpretato nel codice come l'altro ramo, in questo caso semplicemente si jumpa con l'opcode jne del codice
+
+Nel caso ci fossero opeatori logici per esempio &&, ||, !=, == la struttura rimane identica, vengono solo aggiunte più operazioni, ma il concetto
+rimane identico.
+
+LOOPS:
+sono usati per ripetere uno specifico perzzo di codice senza il bisogno di scriverlo più volte.
+Si potrebbe usare un loop per iterare attraverso una lista quando la grandezza è sconosciuta. 
+Leggendo il sorgente loop.c notiamo che viene utilizzato un loop per printare una stringa 15 volte.
+Disassemblandolo con radare2 notiamo che viene utilizzata l'operazione jump per tornare all'inizio del loop se il compare con la variabile risulta minore-uguale di 14 (0xe)
+nel frattempo ogni volta che esegue il jump viene chiamata printf, che è proprio quello che fa il sorgente in c.
+Le istruzioni per disassemblare il binario sono sempre le medesime :
+- aaaa
+- afl
+- s main
+- pdf
+
 
 

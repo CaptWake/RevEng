@@ -1,0 +1,26 @@
+						SOLUTION
+Se proprio non riuscite a risolvere il patchme ecco la soluzione :
+Per prima cosa analizzare il file con il comando linux file <nomefile>
+Notiamo che siamo in un ambiente a 32 bit, little endian
+Eseguiamo il file e notiamo che ci restituisce una stringa.
+Analizziamo ora il binario, apriamo il nostro binario con radare2, rifacciamo la solita routine di comandi : 
+- aaaa
+- afl
+- s main
+- pdf
+notiamo che la stringa che vogliamo ottenere è proprio quella che si trova all'indirizzo 0x08048451, ma per arrivarci dobbiamo skippare 2 condizionali
+notiamo che  all'indirizzo 0x0804843a c'è un jne, notiamo un cmp prima, quindi jumpa all'indirizzo specificato se il valore dentro eax è diverso da 0
+mentre il secondo all'indirizzo 0x08048447 mi dice che jumpa se una variabile locale è diversa da 2.
+Qui entra in gioco la modalità di radare che ci permette di scrivere all'interno di un binario.
+quindi usciamo da radare con quit e eseguiamo questo comando :
+- r2 -w <nome binario>
+ritorniamo alla funzione main disassemblata e "patchiamo" quei due condizionali con un je invece di jne, come fare? 
+Prima di tutto ci spostiamo nell'indirizzo di memoria del primo jump con il comando :
+- s 0x0804843a
+dopodichè scriviamo operazione assembly con il comando :
+- wa je 0x8048462 (wa = write assembly)
+ripetere questa procedura anche con l'altro condizionale (ricorda che l'indirizzo di memoria dopo je è quello del condizionale non quello scritto prima) 
+Fatto ciò uscite da radare e eseguite il binario.
+
+
+
