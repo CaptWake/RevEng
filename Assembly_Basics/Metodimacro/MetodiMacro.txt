@@ -1,0 +1,107 @@
+						METODI E MACRO : CHIAMATE STACK
+
+Metodi e macro vengono usate nei moderni binari. Per conoscere la differenza tra un metodo e una macro, uno deve capire che cosa sono prima.
+Metodi :
+Un metodo anche riferito alla programmazione funzionale, contiene codice il quale può essere eseguito.
+
+In C, tutti i programmi startano con la funzione main, la quale può chiamare altre funzioni. Questo è spesso la prima funzione usata,
+per esempio in radare la prima funzione eseguita è entry0.
+Un esempio di un piccolo programma scritto in C, può essere questo scritto sotto.
+
+int main(int argc, char** argv)
+{
+	return 0;
+}
+
+Questo programma ritorna 0 dopo che la funzione main è stata chiamata. Ritornando 0 da questa funzione, indica che l'"exit call"
+del programma stesso è normale e senza errori.
+
+In pratica la differenza tra le funzioni entry0 e main può essere osservata con qualsiasi binario per esempio 
+si provi a compilare questo sorgente con gcc.
+Aprendo radare2, analizzado il binario con aaaa e listando tutte le funzioni con il comando afl.
+Usando il comando pdf notiamo che la funzione entry0 chiama la funzione main di libc con alcuni parametri pushati nello stack prima della chiamata.
+
+Macro : 
+Cosa sono le macro? Le macro sono un set di multiple istruzioni, definite dal programmatore.
+Due esempi di istruzioni che potrebbero essere definite come macro sono le istruzioni push e pop in assembly.
+L'istruzione push setta un nuovo valore allo stack pointer(SP, ESP, RSP) e assegna il valore dato al nuovo slot di memoria sullo stack.
+Il pop toglie l'ultima variabile aggiunta sullo stack, che viene poi salvata nell'indirizzo dato.
+
+la "macro" push consiste in due istruzioni : 
+sub ESP, 4
+mov [ESP], nome_variabile
+
+Nota che la variabile potrebbe essere un registro, oppure all'instruction pointer, inoltre [ESP] indica il valore contenuto non l'indirizzo.
+
+Similmente la macro pop risulta essere l'inversa della push
+mov EAX, [ESP]
+add ESP, 4
+
+per prima cosa l'indirizzo dello stack pointer viene caricato dentro il registro accumulatore eax, dopodichè lo stack pointer viene diminuito di 4
+perchè di 4? poichè il valore salvato è un dw (double word) poichè registro a 32 bit, il che equivale a 4 byte.
+
+Stack :
+Lo stack cresce (a 64 bit, 32 bit) verso il basso, lo stack lo possiamo immaginare come una pila di libri, da questa pila uno può prendere un libro
+oppure aggiungerne, secondo il metodo LIFO (Last In First Out), push aggiunge, pop toglie.
+
+Calling Convention : 
+Lo stack è utilizzato per salvare le variabili che verranno utilizzate dopo nella stessa maniera e ci sono diverse convenzioni di chiamate, di queste
+è giusto saperne che ci siano,  alcune sono importanti e tengo a spenderci 2 parole.
+Abbiamo le caller convention (principalmente in x86) dove per esempio gli argomenti di funzione vengono passati al contrario, esempio
+
+void test(int a, int b, int c)
+{
+	//do something
+}
+ 
+il risultato in assembly sarebbe
+push c
+push b
+push a
+call void()
+mov esp, ebp
+pop ebp
+ret
+
+dove il caller libera lo stack
+
+Un'altra è la callee convention la quale ritorna il numero di byte che lo stack deve essere pulito, esempio
+push c
+push b
+push a
+call void()
+ret 16
+
+in questo modo cancella le ultime 4 righe della chiamata, che è diverso dalla caller convention, inoltre questa convention
+si trova spesso in codice ASM
+
+
+Salvare i registri : 
+Un registro può contenere un solo valore per volta, per preservare i valori nei registri viene usato lo stack.
+I loro valori vengono salvati nello stack pushandoli (solitamente prima di una chiamata di una funzione) perchè sono valori importanti, non c'è garanzia che questi valori
+siano sempre gli stessi dopo la chiamata della funzione. I registri salvati prima della chiamata dovrebbero rimanere invariati anche quando la funzione ritorna, perchè 
+è responsabilità della funzione chiamata salvare questi valori nello stack e restorarli prima di ritornare.
+
+
+Stack frames :
+Uno stack frame generalmente inizia con le stesse istruzioni che si trovano qui sotto : 
+push EBP
+mov EBP, ESP
+sub ESP, grandezza_totale_variabili
+
+Il base pointer (BP,EBP, RBP), corrisponde alla base della funzione precedente e dovrebbe essere preservato, questo è fatto con l'istruzone push.
+Lo stack pointer (SP, ESP, RSP) viene dopo storato nel base pointer, in modo tale da puntare al top dello stack (relativa a questa funzione).
+L'indirizzo che risiede nello stack pointer viene dopo sottratto  (essendo che cresce verso il basso lo stack) di una grandezza totale di tutte le variabili.
+
+L'epilogo dello stack frame viene definito con queste istruzioni :
+mov ESP, EBP
+pop EBP
+ret
+
+Il base pointer della funzione corrente punta al posto corrente nello stack, e di conseguenza viene salvato nello stack pointer.
+Il vecchio valore del base pointer era salvato all'inizio, e ora viene cancellato dallo stack nel registro base pointer. Dopodichè la funzione
+ritorna dove sono stati preservati i registri. La documentazione di una funzione prevede informazioni sul modo in cui vengono ritornati i valori
+anche se generalmente viene utilizzato il registro accumulatore (AX, EAX, RAX). Se il valore di ritorno è maggiore della grandezza del registro (esempio più di 32 bit in x86 arch)
+allora il valore di ritorno può essere un puntatore a una struttura dati o possono essere utilizzati più registri.
+Questo dipende dalla calling convention che viene usata e dalla grandezza , dal momento che 2 registri a 32 bit possono storare 64 bit al massimo.
+Se il valore di ritorno è più grande della grandezza combinata dei 2 registri, verrà usata una struttura dati.
